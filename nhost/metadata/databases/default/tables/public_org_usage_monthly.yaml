@@ -1,0 +1,39 @@
+table:
+  schema: public
+  name: org_usage_monthly
+# Views don't carry real foreign keys, so the relationship back to
+# organizations is declared manually for the permission filter below to work.
+object_relationships:
+  - name: organization
+    using:
+      manual_configuration:
+        remote_table:
+          schema: public
+          name: organizations
+        column_mapping:
+          org_id: id
+array_relationships: []
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - org_id
+        - org_name
+        - quota_limit
+        - usage_month
+        - runs_this_month
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - org_id
+        - org_name
+        - quota_limit
+        - usage_month
+        - runs_this_month
+      filter: {}

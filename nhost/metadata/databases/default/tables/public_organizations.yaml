@@ -1,0 +1,50 @@
+table:
+  schema: public
+  name: organizations
+object_relationships: []
+array_relationships:
+  - name: members
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table:
+          schema: public
+          name: org_members
+  - name: workflows
+    using:
+      foreign_key_constraint_on:
+        column: org_id
+        table:
+          schema: public
+          name: workflows
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - quota_limit
+        - quota_used
+        - created_at
+        - updated_at
+      filter:
+        members:
+          user_id:
+            _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - id
+        - name
+        - quota_limit
+        - quota_used
+        - created_at
+        - updated_at
+      filter: {}
+# NOTE (assumption, flag for Agent 2 / whoever owns org lifecycle):
+# No insert/update/delete permissions are defined for organizations under the
+# 'user' role. Org creation/quota changes were not specified as part of this
+# ownership area and are assumed to happen via an admin-privileged path
+# (Nhost Function using the admin secret, or a dedicated onboarding Action),
+# not directly through end-user GraphQL mutations.

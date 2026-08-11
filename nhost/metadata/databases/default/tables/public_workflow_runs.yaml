@@ -1,0 +1,87 @@
+table:
+  schema: public
+  name: workflow_runs
+object_relationships:
+  - name: workflow
+    using:
+      foreign_key_constraint_on: workflow_id
+array_relationships:
+  - name: step_runs
+    using:
+      foreign_key_constraint_on:
+        column: workflow_run_id
+        table:
+          schema: public
+          name: step_runs
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - status
+        - triggered_by
+        - started_at
+        - completed_at
+        - created_at
+        - updated_at
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - status
+        - triggered_by
+        - started_at
+        - completed_at
+        - created_at
+        - updated_at
+      filter: {}
+insert_permissions:
+  # Only owner/editor can trigger a run; viewers cannot ("can trigger" flag).
+  - role: user
+    permission:
+      check:
+        workflow:
+          organization:
+            members:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - role:
+                    _in: [owner, editor]
+      columns:
+        - workflow_id
+      set:
+        triggered_by: X-Hasura-User-Id
+        status: pending
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - workflow_id
+        - status
+        - triggered_by
+        - started_at
+        - completed_at
+# No update_permissions or delete_permissions for role 'user':
+# run status transitions (pending -> running -> paused/completed/failed) are
+# owned exclusively by Agent 2's execution engine, which should call Hasura
+# as the 'service' role (or via admin secret from a trusted server context).
+# Execution history is intentionally immutable from the end-user's perspective.
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - status
+        - started_at
+        - completed_at
+      filter: {}
+      check: null

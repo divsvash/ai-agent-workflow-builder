@@ -1,0 +1,153 @@
+table:
+  schema: public
+  name: workflow_triggers
+object_relationships:
+  - name: workflow
+    using:
+      foreign_key_constraint_on: workflow_id
+array_relationships: []
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - trigger_type
+        - config
+        - enabled
+        - created_at
+        - updated_at
+      filter:
+        workflow:
+          organization:
+            members:
+              user_id:
+                _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - id
+        - workflow_id
+        - trigger_type
+        - config
+        - enabled
+        - created_at
+        - updated_at
+      filter: {}
+insert_permissions:
+  - role: user
+    permission:
+      # LAYER 2: webhook triggers require 'owner'. manual/scheduled/database_event
+      # only require owner OR editor.
+      check:
+        _or:
+          - _and:
+              - trigger_type:
+                  _in: [manual, scheduled, database_event]
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _in: [owner, editor]
+          - _and:
+              - trigger_type:
+                  _eq: webhook
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _eq: owner
+      columns:
+        - workflow_id
+        - trigger_type
+        - config
+        - enabled
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - trigger_type
+        - config
+        - enabled
+      filter:
+        _or:
+          - _and:
+              - trigger_type:
+                  _in: [manual, scheduled, database_event]
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _in: [owner, editor]
+          - _and:
+              - trigger_type:
+                  _eq: webhook
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _eq: owner
+      check:
+        _or:
+          - _and:
+              - trigger_type:
+                  _in: [manual, scheduled, database_event]
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _in: [owner, editor]
+          - _and:
+              - trigger_type:
+                  _eq: webhook
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _eq: owner
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _or:
+          - _and:
+              - trigger_type:
+                  _in: [manual, scheduled, database_event]
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _in: [owner, editor]
+          - _and:
+              - trigger_type:
+                  _eq: webhook
+              - workflow:
+                  organization:
+                    members:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _eq: owner

@@ -1,0 +1,85 @@
+table:
+  schema: public
+  name: step_runs
+object_relationships:
+  - name: workflow_run
+    using:
+      foreign_key_constraint_on: workflow_run_id
+  - name: workflow_step
+    using:
+      foreign_key_constraint_on: workflow_step_id
+array_relationships: []
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_run_id
+        - workflow_step_id
+        - status
+        - input
+        - output
+        - error
+        - attempt_count
+        - approved_by
+        - approved_at
+        - created_at
+        - updated_at
+      filter:
+        workflow_run:
+          workflow:
+            organization:
+              members:
+                user_id:
+                  _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - id
+        - workflow_run_id
+        - workflow_step_id
+        - status
+        - input
+        - output
+        - error
+        - attempt_count
+        - approved_by
+        - approved_at
+        - created_at
+        - updated_at
+      filter: {}
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - workflow_run_id
+        - workflow_step_id
+        - status
+        - input
+        - output
+        - error
+        - attempt_count
+        - approved_by
+        - approved_at
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - status
+        - input
+        - output
+        - error
+        - attempt_count
+        - approved_by
+        - approved_at
+      filter: {}
+      check: null
+# No insert/update/delete permissions for role 'user': step_runs is entirely
+# owned by the execution engine (Agent 2) and by whatever server-side handler
+# processes approval_gate decisions. The 'user' role is read-only here, per
+# your explicit instruction. Note that Hasura row permissions alone cannot
+# express "only THIS user may approve THIS approval_gate" -- that
+# authorization check belongs in Agent 2's Action handler, as the assignment
+# already specifies.

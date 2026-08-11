@@ -1,0 +1,78 @@
+table:
+  schema: public
+  name: org_members
+object_relationships:
+  - name: organization
+    using:
+      foreign_key_constraint_on: org_id
+array_relationships: []
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - user_id
+        - org_id
+        - role
+        - created_at
+        - updated_at
+      filter:
+        organization:
+          members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - id
+        - user_id
+        - org_id
+        - role
+        - created_at
+        - updated_at
+      filter: {}
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        organization:
+          members:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - role:
+                  _eq: owner
+      columns:
+        - user_id
+        - org_id
+        - role
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - role
+      filter:
+        organization:
+          members:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - role:
+                  _eq: owner
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        organization:
+          members:
+            _and:
+              - user_id:
+                  _eq: X-Hasura-User-Id
+              - role:
+                  _eq: owner
+# Membership management (insert/update/delete) is owner-only, per LAYER 1 spec.
+# An owner cannot be blocked here from removing themselves and leaving an org
+# ownerless; that safeguard (e.g. "must have >=1 owner") is not enforced at the
+# DB/Hasura layer and should be handled in application logic if required.
