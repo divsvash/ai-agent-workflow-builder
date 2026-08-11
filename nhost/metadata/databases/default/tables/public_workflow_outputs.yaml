@@ -1,0 +1,61 @@
+table:
+  schema: public
+  name: workflow_outputs
+object_relationships:
+  - name: workflow_run
+    using:
+      foreign_key_constraint_on: workflow_run_id
+  - name: workflow_step
+    using:
+      foreign_key_constraint_on: workflow_step_id
+array_relationships: []
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_run_id
+        - workflow_step_id
+        - key
+        - value
+        - created_at
+      # workflow_outputs -> workflow_run -> workflow -> organization -> org_members
+      filter:
+        workflow_run:
+          workflow:
+            organization:
+              members:
+                user_id:
+                  _eq: X-Hasura-User-Id
+      allow_aggregations: false
+  - role: service
+    permission:
+      columns:
+        - id
+        - workflow_run_id
+        - workflow_step_id
+        - key
+        - value
+        - created_at
+      filter: {}
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - workflow_run_id
+        - workflow_step_id
+        - key
+        - value
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - key
+        - value
+      filter: {}
+      check: null
+# No insert/update/delete permissions for role 'user': workflow_outputs is
+# written exclusively by the execution engine (Agent 2), same pattern as
+# step_runs. Consistent with the existing permission architecture -- nothing
+# about how 'user' vs 'service' roles are scoped elsewhere has changed.

@@ -126,3 +126,19 @@ variable, not against anything derivable from the row's ID.
    inserts minimal rows there; if your actual Nhost Auth schema has
    additional `NOT NULL` columns without defaults, the seed's `auth.users`
    insert will need adjusting (see comment at the top of the seed file).
+
+### Changelog
+
+**Correction pass (post-review):**
+- Added `workflow_outputs` (migration `1739000000009_init_workflow_outputs`):
+  keyed, immutable-from-the-user's-side output records per
+  `(workflow_run_id, workflow_step_id)`, indexed on both FKs. Tracked in
+  Hasura with the same read-through-org-membership pattern as every other
+  table (`workflow_outputs -> workflow_run -> workflow -> organization ->
+  org_members`), `service`-role-only writes — no changes to the existing
+  permission architecture, just the same pattern applied to a new table.
+- Added `organizations.quota_period_start` (migration
+  `1739000000010_add_quota_period_start_to_organizations`), `date NOT NULL
+  DEFAULT date_trunc('month', now())::date`. Exposed in `select_permissions`
+  for both `user` and `service` roles (column list only — filter/check logic
+  untouched). Seed data now sets it explicitly to the current month.

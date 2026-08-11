@@ -29,10 +29,10 @@ ON CONFLICT (id) DO NOTHING;
 -- ---------------------------------------------------------------------
 -- Organizations
 -- ---------------------------------------------------------------------
-INSERT INTO public.organizations (id, name, quota_limit, quota_used)
+INSERT INTO public.organizations (id, name, quota_limit, quota_used, quota_period_start)
 VALUES
-  ('a0000000-0000-0000-0000-000000000001', 'Org A', 1000, 0),
-  ('b0000000-0000-0000-0000-000000000001', 'Org B', 1000, 0)
+  ('a0000000-0000-0000-0000-000000000001', 'Org A', 1000, 0, date_trunc('month', CURRENT_DATE)::date),
+  ('b0000000-0000-0000-0000-000000000001', 'Org B', 1000, 0, date_trunc('month', CURRENT_DATE)::date)
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------

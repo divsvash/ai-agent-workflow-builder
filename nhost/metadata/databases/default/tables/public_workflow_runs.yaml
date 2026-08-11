@@ -13,6 +13,13 @@ array_relationships:
         table:
           schema: public
           name: step_runs
+  - name: outputs
+    using:
+      foreign_key_constraint_on:
+        column: workflow_run_id
+        table:
+          schema: public
+          name: workflow_outputs
 select_permissions:
   - role: user
     permission:
