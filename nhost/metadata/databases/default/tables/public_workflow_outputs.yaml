@@ -59,3 +59,25 @@ update_permissions:
 # written exclusively by the execution engine (Agent 2), same pattern as
 # step_runs. Consistent with the existing permission architecture -- nothing
 # about how 'user' vs 'service' roles are scoped elsewhere has changed.
+
+# --- Added by Agent 2 (execution engine), additive only ---
+# notify steps write a workflow_outputs row with key = "notification"
+# instead of calling any notification provider directly. This event trigger
+# is what turns that row into an actual Slack delivery, via
+# functions/notifyEventHandler.ts. It fires on every INSERT (db_write rows
+# included); the handler itself filters to key = "notification" and no-ops
+# otherwise. No new table was introduced for this.
+event_triggers:
+  - name: workflow_outputs_notify
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      num_retries: 3
+      interval_sec: 10
+      timeout_sec: 60
+    webhook: '{{ACTIONS_BASE_URL}}/notifyEventHandler'
+    headers:
+      - name: x-action-secret
+        value_from_env: ACTION_SECRET

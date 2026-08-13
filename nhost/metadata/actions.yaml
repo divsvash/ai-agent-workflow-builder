@@ -1,0 +1,68 @@
+actions:
+  - name: triggerWorkflowRun
+    definition:
+      kind: synchronous
+      handler: '{{ACTIONS_BASE_URL}}/triggerWorkflowRun'
+      forward_client_headers: true
+      headers:
+        - name: x-action-secret
+          value_from_env: ACTION_SECRET
+      type: mutation
+      timeout: 60
+    permissions:
+      - role: user
+    comment: >
+      Agent 2 ownership. Backed by functions/triggerWorkflowRun.ts.
+      Authorizes the caller against the workflow's own organization
+      (org_id is derived server-side from workflow_id, never trusted from
+      the client), enforces quota admission, then runs the shared ordered
+      executor synchronously until completed/failed/paused.
+
+  - name: approveStep
+    definition:
+      kind: synchronous
+      handler: '{{ACTIONS_BASE_URL}}/approveStep'
+      forward_client_headers: true
+      headers:
+        - name: x-action-secret
+          value_from_env: ACTION_SECRET
+      type: mutation
+      timeout: 60
+    permissions:
+      - role: user
+    comment: >
+      Agent 2 ownership. Backed by functions/approveStep.ts. Independently
+      re-derives org membership/role from step_run_id -> workflow_step ->
+      workflow -> organization. Resumes the same shared executor from the
+      step after the approved approval_gate.
+
+  - name: webhookTrigger
+    definition:
+      kind: synchronous
+      handler: '{{ACTIONS_BASE_URL}}/webhookTrigger'
+      forward_client_headers: false
+      headers:
+        - name: x-action-secret
+          value_from_env: ACTION_SECRET
+      type: mutation
+      timeout: 60
+    permissions:
+      - role: public
+    comment: >
+      Agent 2 ownership. Backed by functions/webhookTrigger.ts. External,
+      unauthenticated entry point (no end-user JWT) — authorized instead by
+      a shared secret stored on the workflow's own workflow_triggers.config,
+      which could only have been set by an org owner (Layer 2 Hasura
+      permission on workflow_triggers already restricts webhook-type
+      triggers to owner). Invokes the exact same shared executor as
+      triggerWorkflowRun. NOTE: verify 'public' matches this project's
+      actual configured unauthenticated Hasura role
+      (HASURA_GRAPHQL_UNAUTHORIZED_ROLE) before deploying — adjust this
+      permission's role if it differs.
+custom_types:
+  enums: []
+  input_objects: []
+  objects:
+    - name: WorkflowRunResult
+  scalars:
+    - name: uuid
