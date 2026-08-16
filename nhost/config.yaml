@@ -1,0 +1,5 @@
+version: 3
+endpoint: http://graphql:8080
+admin_secret: nhost-admin-secret
+metadata_directory: metadata
+migrations_directory: migrations

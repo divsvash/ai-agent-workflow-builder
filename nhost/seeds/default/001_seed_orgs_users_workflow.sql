@@ -12,18 +12,18 @@
 -- ---------------------------------------------------------------------
 -- Users (3 per org)
 -- ---------------------------------------------------------------------
-INSERT INTO auth.users (id, email, display_name, email_verified, default_role)
+INSERT INTO auth.users (id, email, display_name, email_verified, default_role, locale)
 VALUES
-  ('a1111111-0000-0000-0000-000000000001', 'orga.owner@example.com',  'Org A Owner',  true, 'user'),
-  ('a1111111-0000-0000-0000-000000000002', 'orga.editor@example.com', 'Org A Editor', true, 'user'),
-  ('a1111111-0000-0000-0000-000000000003', 'orga.viewer@example.com', 'Org A Viewer', true, 'user')
+  ('a1111111-0000-0000-0000-000000000001', 'orga.owner@example.com',  'Org A Owner',  true, 'user', 'en'),
+  ('a1111111-0000-0000-0000-000000000002', 'orga.editor@example.com', 'Org A Editor', true, 'user', 'en'),
+  ('a1111111-0000-0000-0000-000000000003', 'orga.viewer@example.com', 'Org A Viewer', true, 'user', 'en')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO auth.users (id, email, display_name, email_verified, default_role)
+INSERT INTO auth.users (id, email, display_name, email_verified, default_role, locale)
 VALUES
-  ('b2222222-0000-0000-0000-000000000001', 'orgb.owner@example.com',  'Org B Owner',  true, 'user'),
-  ('b2222222-0000-0000-0000-000000000002', 'orgb.editor@example.com', 'Org B Editor', true, 'user'),
-  ('b2222222-0000-0000-0000-000000000003', 'orgb.viewer@example.com', 'Org B Viewer', true, 'user')
+  ('b2222222-0000-0000-0000-000000000001', 'orgb.owner@example.com',  'Org B Owner',  true, 'user', 'en'),
+  ('b2222222-0000-0000-0000-000000000002', 'orgb.editor@example.com', 'Org B Editor', true, 'user', 'en'),
+  ('b2222222-0000-0000-0000-000000000003', 'orgb.viewer@example.com', 'Org B Viewer', true, 'user', 'en')
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------
